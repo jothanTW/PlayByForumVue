@@ -1,9 +1,9 @@
 import axios from 'axios';
 
-const DBURL = "/static/";
-const GRPROUTE = "test-data/group-test.json";
-const FRMROUTE = "test-data/forum-test.json";
-const THDROUTE = "test-data/thread-test.json";
+const DBURL = "http://localhost:3000";
+const GRPROUTE = "/groups/";
+const FRMROUTE = "/forum/";
+const THDROUTE = "/thread/";
 
 class ForumService {
     constructor() {
@@ -22,18 +22,21 @@ class ForumService {
     }
     getGroups() {
         return this.doGet(DBURL + GRPROUTE).catch(error => {
+            console.log(error);
             console.error("Error fetching groups: " + error);
         });
     }
     getForum(forumid, pagenum) {
-        // TODO: when we have an actual database, append the forumid and pagenum to the route
-        return this.doGet(DBURL + FRMROUTE).catch(error => {
+        let p = 1;
+        if (pagenum) p = pagenum;
+        return this.doGet(DBURL + FRMROUTE + forumid + "/" + p).catch(error => {
             console.error("Error fetching forum" + forumid + ": " + error);
         });
     }
     getThread(threadid, pagenum) {
-        // TODO: when we have an actual database, append the threadid and pagenum to the route
-        return this.doGet(DBURL + THDROUTE).catch(error => {
+        let p = 1;
+        if (pagenum) p = pagenum;
+        return this.doGet(DBURL + THDROUTE + threadid + "/" + p).catch(error => {
             console.error("Error fetching thread" + threadid + ": " + error);
         });
     }
