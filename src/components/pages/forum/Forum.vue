@@ -41,12 +41,20 @@
                 forum: {}
             }
         },
+        methods: {
+            populate(to, from) {
+                ForumService.getForum(to.params.forum).then(data => {
+                    this.forum = data;
+                });
+            }
+        },
         beforeRouteEnter(to, from, next) {
-            ForumService.getForum(to.params.forum).then(data => {
-                next(vm => {
-                    vm.forum = data;
-                })
-            });
+            next(vm => vm.populate(to, from));
+        },
+        watch: {
+            '$route' (to, from) {
+                this.populate(to, from);
+            }
         }
     }
 </script>

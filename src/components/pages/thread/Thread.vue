@@ -21,12 +21,20 @@
                 thread: {}
             }
         },
+        methods: {
+            populate(to, from) {
+                ForumService.getThread(to.params.thread, to.params.page).then(data => {
+                    this.thread = data;
+                });
+            }
+        },
         beforeRouteEnter(to, from, next) {
-            ForumService.getThread(to.params.thread, to.params.page).then(data => {
-                next(vm => {
-                    vm.thread = data;
-                })
-            });
+            next(vm => vm.populate(to, from));
+        },
+        watch: {
+            '$route' (to, from) {
+                this.populate(to, from);
+            }
         }
     }
 </script>
