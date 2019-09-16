@@ -47,6 +47,7 @@ export default {
 
             UserService.doLogin(username, userpass).then(response => {
                 if (response.data.error) {
+                    this.errortext = response.data.error;
                     console.log(response.data.error);
                 } else {
                     this.showLogin();
@@ -89,6 +90,9 @@ export default {
         },
         doLogOut() {
             UserService.doLogout().then(response => {
+                if (response.data.error) {
+                    console.log(response.data.error);
+                }
                 this.showLogin();
             })
         }

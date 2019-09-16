@@ -67,6 +67,7 @@ class UserService {
             url: DBURL + LGOROUTE,
             withCredentials: true
         }).then(response => {
+            this.username = '';
             this.sendAlert('logout');
             return response;
         }).catch(error => {

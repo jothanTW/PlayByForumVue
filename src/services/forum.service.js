@@ -69,6 +69,19 @@ class ForumService {
             console.error("Error making thread: " + error);
         })
     }
+    editPost(forumid, postnum, postcontent) {
+        return axios({
+            method: "POST",
+            url: DBURL + THDROUTE + forumid + "" + postnum,
+            data: postcontent,
+            withCredentials: true
+        }).then(response => {
+            return response;
+        }).catch(error => {
+            console.log(error);
+            console.error("Error editing post: " + error);
+        })
+    }
 }
 
 export default new ForumService();  

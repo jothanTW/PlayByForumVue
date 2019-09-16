@@ -3,6 +3,7 @@
         PUT YOUR POSTS RIGHT HERE BABY
         <textarea ref="post-area"></textarea>
         <button @click="sendPost()">Submit Post</button>
+        <div class='error-text' v-if="errorText.length">{{ errorText }}</div>
     </div>
 </template>
 
@@ -14,16 +15,22 @@ export default {
     name: "PostMaker",
     data() {
         return {
-            showBox: false
+            showBox: false,
+            errorText: ""
         }
     },
     methods: {
         updateShowBox() {
             this.showBox = (this.$cookies.isKey("pbforum_sid"));
         },
+        addQuote(post) {
+            let quotestr = "[quote=\"" + post.header.name + "\"]\n" + post.textBlock.text + "\n[/quote]";
+            this.$refs["post-area"].value += quotestr;
+        },
         sendPost() {
             ForumService.postToThread(this.$route.params.thread, {text: this.$refs["post-area"].value}).then(response => {
                 if (response.data.error) {
+                    this.errorText = response.data.error;
                     console.log(response.data.error);
                 }
                 if (response.data.status) {

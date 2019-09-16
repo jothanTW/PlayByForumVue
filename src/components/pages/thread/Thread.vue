@@ -8,14 +8,17 @@
             </div>
         </div>
         <div class="post-box">
-            <Post v-for="(post, index) in thread.posts" :key="index" :post="post" :isGameThread="thread.isGame"></Post>
+            <Post v-for="(post, index) in thread.posts" :key="index" 
+                :post="post" :isGameThread="thread.isGame" :username="username"  
+                @quote="moveQuote(post)" @edit="sendEdit($event, index)"></Post>
         </div>
-        <PostMaker></PostMaker>
+        <PostMaker ref="postmaker"></PostMaker>
     </div>
 </template>
 
 <script>
     import ForumService from "@/services/forum.service"
+    import UserService from "@/services/user.service"
 
     import Post from "@/components/pages/thread/Post"
     import PostMaker from "@/components/pages/thread/PostMaker"
@@ -25,22 +28,42 @@
         components: { Post, PostMaker },
         data() {
             return {
-                thread: {}
+                thread: {},
+                username: "",
+                pagenum: 1
             }
         },
         methods: {
-            populate(to, from) {
+            populate(to) {
                 ForumService.getThread(to.params.thread, to.params.page).then(data => {
                     this.thread = data;
                 });
+            },
+            moveQuote(post) {
+                this.$refs.postmaker.addQuote(post);
+            },
+            updateUsername() {
+                this.username = UserService.username;
+            },
+            sendEdit(event, num) {
+                let postnum = (pagenum - 1) * 40 + num + 1;
+                ForumService.editPost(thread.id, postnum, event);
+                //console.log(num);
+                //console.log(event);
             }
         },
         beforeRouteEnter(to, from, next) {
             next(vm => vm.populate(to, from));
         },
+        created() {
+            UserService.listen(this.updateUsername);
+        },
+        mounted() {
+            this.updateUsername();
+        },
         watch: {
-            '$route' (to, from) {
-                this.populate(to, from);
+            '$route' (to) {
+                this.populate(to);
             }
         }
     }

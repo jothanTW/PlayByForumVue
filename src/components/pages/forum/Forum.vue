@@ -43,18 +43,18 @@
             }
         },
         methods: {
-            populate(to, from) {
+            populate(to) {
                 ForumService.getForum(to.params.forum).then(data => {
                     this.forum = data;
                 });
             }
         },
         beforeRouteEnter(to, from, next) {
-            next(vm => vm.populate(to, from));
+            next(vm => vm.populate(to));
         },
         watch: {
-            '$route' (to, from) {
-                this.populate(to, from);
+            '$route' (to) {
+                this.populate(to);
             }
         }
     }

@@ -3,9 +3,9 @@
         <div class="thread-text">
             <router-link class="thread-title" :to="'/thread/' + thread.id">{{ thread.title }}</router-link>
             <div class="thread-pages" v-if="pageliststart.length">Pages:
-                <router-link v-for="(page, index) in pageliststart" :key="page" :to="'/thread/' + thread.id + '/' + page">{{ page }}</router-link>
+                <router-link v-for="(page) in pageliststart" :key="page" :to="'/thread/' + thread.id + '/' + page">{{ page }}</router-link>
                 <div v-if="pagelistend.length">...</div>
-                <router-link v-for="(page, index) in pagelistend" :key="page" :to="'/thread/' + thread.id + '/' + page">{{ page }}</router-link>
+                <router-link v-for="(page) in pagelistend" :key="page" :to="'/thread/' + thread.id + '/' + page">{{ page }}</router-link>
                 </div>
         </div>
         <div class="thread-stats">
