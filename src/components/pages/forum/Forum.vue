@@ -15,6 +15,7 @@
             </div>
             <ForumBar v-for="(subforum, fidx) in forum.subforums" :key="fidx" :forum="subforum"></ForumBar>
         </div>
+        <div class="new-thread-button"><router-link :to="'/forum/' + $route.params.forum + '/create-thread'">Create New Thread</router-link></div>
         <div class="thread-box" v-if="forum.threads">
             <div class="thread-box-header">
                 <div class="thread-box-title">Threads</div>

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const DBURL = "http://localhost:3000";
+const DBURL = "http://184.180.100.88:3000";
 const GRPROUTE = "/groups/";
 const FRMROUTE = "/forum/";
 const THDROUTE = "/thread/";
@@ -39,6 +39,35 @@ class ForumService {
         return this.doGet(DBURL + THDROUTE + threadid + "/" + p).catch(error => {
             console.error("Error fetching thread" + threadid + ": " + error);
         });
+    }
+    postToThread(threadid, post) {
+        return axios({
+            method: "POST",
+            url: DBURL + THDROUTE + threadid,
+            data: post,
+            withCredentials: true
+        }).then(response => {
+            return response;
+        }).catch(error => {
+            console.log(error);
+            console.error("Error making post: " + error);
+        })
+    }
+    postNewThread(threadname, forumid, post) {
+        return axios({
+            method: "POST",
+            url: DBURL + FRMROUTE + forumid,
+            data: {
+                title: threadname,
+                text: post
+            },
+            withCredentials: true
+        }).then(response => {
+            return response;
+        }).catch(error => {
+            console.log(error);
+            console.error("Error making thread: " + error);
+        })
     }
 }
 

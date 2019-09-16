@@ -1,10 +1,16 @@
 <template>
     <div v-if="thread">
         <div class="thread-title">{{ thread.title }}</div>
-        <div class="thread-breadcrumbs"></div>
+        <div class="thread-breadcrumbs">
+            <router-link to="/">Home</router-link>
+            <div class="crumb" v-for="(crumb, index) in thread.crumbs" :key="index">
+                &lt;<router-link :to='"/forum/" + crumb.id'>{{ crumb.title }}</router-link>
+            </div>
+        </div>
         <div class="post-box">
             <Post v-for="(post, index) in thread.posts" :key="index" :post="post" :isGameThread="thread.isGame"></Post>
         </div>
+        <PostMaker></PostMaker>
     </div>
 </template>
 
@@ -12,10 +18,11 @@
     import ForumService from "@/services/forum.service"
 
     import Post from "@/components/pages/thread/Post"
+    import PostMaker from "@/components/pages/thread/PostMaker"
 
     export default {
         name: "Thread",
-        components: { Post },
+        components: { Post, PostMaker },
         data() {
             return {
                 thread: {}
@@ -45,7 +52,19 @@
         font-weight: bold;
     }
 
+    .thread-breadcrumbs {
+        display: flex;
+        margin-top: 10px;
+        font-weight: bold;
 
+        .crumb {
+            margin-left: 10px;
+
+            a {
+                margin-left: 10px;
+            }
+        }
+    }
 
     .post-box {
         margin: 20px;
