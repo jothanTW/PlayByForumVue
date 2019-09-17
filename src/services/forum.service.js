@@ -71,8 +71,8 @@ class ForumService {
     }
     editPost(forumid, postnum, postcontent) {
         return axios({
-            method: "POST",
-            url: DBURL + THDROUTE + forumid + "" + postnum,
+            method: "PUT",
+            url: DBURL + THDROUTE + forumid + "/" + postnum,
             data: postcontent,
             withCredentials: true
         }).then(response => {

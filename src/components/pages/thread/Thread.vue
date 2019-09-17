@@ -46,8 +46,14 @@
                 this.username = UserService.username;
             },
             sendEdit(event, num) {
-                let postnum = (pagenum - 1) * 40 + num + 1;
-                ForumService.editPost(thread.id, postnum, event);
+                let postnum = (this.pagenum - 1) * 40 + num + 1;
+                ForumService.editPost(this.thread.id, postnum, event).then(response=> {
+                    if (response.status) {
+                        this.$router.go();
+                    } else if (response.error) {
+                        console.log(response);
+                    }
+                });
                 //console.log(num);
                 //console.log(event);
             }
