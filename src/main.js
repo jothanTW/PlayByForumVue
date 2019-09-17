@@ -4,6 +4,12 @@ import router from './router'
 import vcookies from "vue-cookies"
 
 Vue.config.productionTip = false
+Vue.prototype.$pageTitle = "TEST";
+Vue.prototype.$pageCaches = {
+  group: {},
+  forum: {},
+  thread: {}
+}
 
 Vue.use(vcookies);
 

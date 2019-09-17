@@ -1,13 +1,12 @@
 import axios from 'axios';
 
-const DBURL = "http://184.180.100.88:3000";
+const DBURL = "http://" + location.host.split(":")[0] + ":3000";
 const GRPROUTE = "/groups/";
 const FRMROUTE = "/forum/";
 const THDROUTE = "/thread/";
 
 class ForumService {
     constructor() {
-
     }
     doGet(url) {
         return axios.get(url).then(response => {

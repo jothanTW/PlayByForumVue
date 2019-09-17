@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="forum-page-title">
-            {{ forum.title }}
+            {{ forum.title ? forum.title : $pageTitle }}
         </div>
         <div class="forum-page-crumbs" v-if="forum.crumbs">
             <router-link class="crumb-home" to="/">Home</router-link>
@@ -15,21 +15,25 @@
             </div>
             <ForumBar v-for="(subforum, fidx) in forum.subforums" :key="fidx" :forum="subforum"></ForumBar>
         </div>
-        <div class="new-thread-button"><router-link :to="'/forum/' + $route.params.forum + '/create-thread'">Create New Thread</router-link></div>
-        <div class="thread-box" v-if="forum.threads">
+        <div v-if="canCreate" class="new-thread-button"><router-link :to="'/forum/' + $route.params.forum + '/create-thread'">Create New Thread</router-link></div>
+        <div class="thread-box">
             <div class="thread-box-header">
                 <div class="thread-box-title">Threads</div>
                 <div class="thread-box-header-name">Posts</div>
                 <div class="thread-box-header-name">Views</div>
                 <div class="thread-box-header-last">Last Poster</div>
             </div>
-            <ThreadBar v-for="(thread, id) in forum.threads" :key="id" :thread="thread"></ThreadBar>
+            <transition-group class="forum-threads" tag="div" name="bar-list">
+                <div class="forumloader" v-if="!loaded" key="loadbar"><div class="loading-bar-container"></div>Loading...</div>
+                <ThreadBar v-for="(thread, id) in forum.threads" :key="id" :thread="thread"></ThreadBar>
+            </transition-group>
         </div>
     </div>
 </template>
 
 <script>
     import ForumService from "@/services/forum.service";
+    import UserService from "@/services/user.service";
 
     import ForumBar from "@/components/pages/home/ForumBar";
     import ThreadBar from "@/components/pages/forum/ThreadBar";
@@ -39,23 +43,50 @@
         components: { ForumBar, ThreadBar },
         data() {
             return {
-                forum: {}
+                forum: {threads:[]},
+                canCreate: false,
+                loaded: false,
+                loadTiming: 200
             }
         },
         methods: {
             populate(to) {
                 ForumService.getForum(to.params.forum).then(data => {
+                    // sort the threads, in case server doesn't do it
+                    data.threads.sort(function(a, b) {
+                        return new Date(b.date).getTime() - new Date(a.date).getTime();
+                    })
+
+                    // add threads one at a time
+                    let threads = data.threads;
+                    data.threads = [];
+
                     this.forum = data;
+                    this.loaded = true;
+                    let t = 0;
+                    let i = this.loadTiming;
+                    for (let thread of threads) {
+                        window.setTimeout(() => { this.forum.threads.push(thread)}, t)
+                        t += i;
+                    }
                 });
+            },
+            setupPermissions() {
+                this.canCreate = UserService.username.length > 0;
             }
         },
         beforeRouteEnter(to, from, next) {
-            next(vm => vm.populate(to));
+            next(vm => {
+                vm.populate(to);
+            });
         },
         watch: {
             '$route' (to) {
                 this.populate(to);
             }
+        },
+        created() {
+            UserService.listen(this.setupPermissions);
         }
     }
 </script>
@@ -139,6 +170,16 @@
                 width: 200px;
                 max-width: 200px;
             }
+        }
+
+        .forum-threads {
+            background-color: white;
+        }
+
+        .forumloader {
+            min-height: 20px;
+            padding: 10px;
+            background-color: white;
         }
     }
 </style>

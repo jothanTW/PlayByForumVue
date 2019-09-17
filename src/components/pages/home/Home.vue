@@ -1,13 +1,17 @@
 <template>
-    <div>
-        <div class="forum-group" v-for="(group, index) in groups" :key="index">
-            <div class="forum-group-header">
-                <div class="forum-group-title">{{ group.title }}</div>
-                <div class="forum-group-header-name">Threads</div>
-                <div class="forum-group-header-name">Posts</div>
+    <div :style="styleObject" ref="group-container" class="group-container">
+        <transition-group name="group-list" tag="div" ref="groups" class="group-list">
+            <div class="forum-group" v-for="(group, index) in groups" :key="index" :ref="'group' + index">
+                <div class="forum-group-header">
+                    <div class="forum-group-title">{{ group.title }}</div>
+                    <div class="forum-group-header-name">Threads</div>
+                    <div class="forum-group-header-name">Posts</div>
+                </div>
+                <transition-group @enter="onEnter" tag="div" name="bar-list" class="forum-list">
+                    <ForumBar v-for="(forum, fidx) in group.forums" :key="fidx" :forum="forum"></ForumBar>
+                </transition-group>
             </div>
-            <ForumBar v-for="(forum, fidx) in group.forums" :key="fidx" :forum="forum"></ForumBar>
-        </div>
+        </transition-group>
     </div>
 </template>
 
@@ -21,19 +25,64 @@
         components: { ForumBar },
         data() {
             return {
-                groups: []
+                groups: [],
+                addInterval: 200,
+                calculatedHeight: 0,
+                doubleCalculatedHeight: 0
+            }
+        },
+        methods: {
+            onEnter() {
+                // get the estimated height of each group object
+                let returnh = 0;
+                for (let i = 0; i < this.groups.length; i++) {
+                    let h = this.$refs["group" + i][0].offsetHeight;
+                    returnh += h + 10;
+                }
+                this.calculatedHeight = returnh + "px";
+            }
+        },
+        computed: {
+            styleObject : function() {
+                return {
+                    'max-height': this.calculatedHeight
+                }
             }
         },
         created() {
             ForumService.getGroups().then(data => {
-                // fast way
-                this.groups = data;
+                let i = this.addInterval;
+                let t = 0;
+                for (let group of data) {
+                    let forums = group.forums;
+                    group.forums = [];
+                    // don't show empty groups
+                    if (forums.length) {
+                        window.setTimeout(() => {this.groups.push(group)}, t)
+                        for (let forum of forums) {
+                            window.setTimeout(() => {this.groups[this.groups.length - 1].forums.push(forum); }, t);
+                            t += i;
+                        }
+                        
+                    }
+                    
+                }
+
+                
             });
+        },
+        watch : {
+            calculatedHeight: function() {
+                this.doubleCalculatedHeight = this.calculatedHeight;
+            }
         }
     }
 </script>
 
 <style lang="scss" scoped="true">
+.group-list, .group-container {
+    transition: max-height 500ms ease-out;
+}
     .forum-group {
         margin: 20px;
         background-color: grey;
@@ -58,6 +107,10 @@
                 width: 100px;
                 max-width: 100px;
             }
+        }
+
+        .forum-list {
+            background-color: white;
         }
     }
 </style>

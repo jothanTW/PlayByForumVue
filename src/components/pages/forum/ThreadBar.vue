@@ -11,13 +11,19 @@
         <div class="thread-stats">
             <div class="thread-stat">{{ thread.posts }}</div>
             <div class="thread-stat">{{ thread.views }}</div>
-            <router-link class="thread-last-poster" :to="'/thread/' + thread.id + '/last'">{{ thread.last }}</router-link>
+            <div class="thread-last-poster">
+                <router-link :to="'/thread/' + thread.id + '/last'">{{ thread.last }}</router-link>
+                <div class="thread-last-posted-date">{{ formatDateString(thread.date) }}</div>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
+import DateService from "@/services/date.service";
+
 export default {
+
     name: "ThreadBar",
     props: ["thread"],
     data() {
@@ -58,6 +64,9 @@ export default {
         }
     },
     methods: {
+        formatDateString(date) {
+            return DateService.formatDateToString(new Date(date));
+        }
     },
     watch: {
         thread: function() {
@@ -114,6 +123,14 @@ export default {
                 width: 200px;
                 max-width: 200px;
                 padding: 10px;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-around;
+
+                .thread-last-posted-date {
+                    font-size: 10px;
+                    margin-left: 20px;
+                }
             }
         }
     }

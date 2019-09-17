@@ -81,6 +81,8 @@
 
         .post-header {
             width: 200px;
+            min-width: 200px;
+            max-width: 200px;
             padding: 10px;
             border-right: 3px solid grey;
             display: flex;
@@ -109,6 +111,8 @@
             display: flex;
             flex-grow: 1;
             flex-direction: column;
+            word-wrap: break-word;
+            max-width: calc(100% - 240px);
 
             .post-text {
 
@@ -116,6 +120,7 @@
                     overflow: hidden;
                     flex-grow: 1;
                     max-height: 0px;
+                    word-wrap: break-word;
 
                     &.active {
                         max-height: initial;
@@ -148,5 +153,15 @@
         border: 3px solid grey;
         box-shadow: 2px 2px 2px black;
         padding: 10px;
+    }
+
+    .spoiler-text {
+        display: inline;
+        background-color: black;
+        color: black;
+    }
+
+    .spoiler-text:hover {
+        color: white;
     }
 </style>
