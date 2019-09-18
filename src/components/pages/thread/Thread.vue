@@ -31,7 +31,9 @@
         components: { Post, PostMaker },
         data() {
             return {
-                thread: {},
+                thread: {
+                    title: ForumService.getThreadNameFromCache(this.$route.params.thread),
+                },
                 username: "",
                 pagenum: 1,
                 postInterval: 200,
@@ -101,6 +103,7 @@
         display: flex;
         margin-top: 10px;
         font-weight: bold;
+        font-size: 20px;
 
         .crumb {
             margin-left: 10px;
@@ -116,6 +119,7 @@
         border: 10px solid grey;
         border-radius: 15px;
         background-color: white;
+        overflow:hidden;
 
         .threadloader {
             padding: 10px;

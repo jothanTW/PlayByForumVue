@@ -1,9 +1,9 @@
 <template>
     <div>
         <div class="forum-page-title">
-            {{ forum.title ? forum.title : $pageTitle }}
+            {{ forum.title }}
         </div>
-        <div class="forum-page-crumbs" v-if="forum.crumbs">
+        <div class="forum-page-crumbs">
             <router-link class="crumb-home" to="/">Home</router-link>
             <div class="forum-page-crumb" v-for="(crumb, index) in forum.crumbs" :key="index">&lt;<router-link :to="'/forum/' + crumb.id">{{ crumb.title }}</router-link></div>
         </div>
@@ -43,7 +43,11 @@
         components: { ForumBar, ThreadBar },
         data() {
             return {
-                forum: {threads:[]},
+                forum: {
+                    title: ForumService.getForumNameFromCache(this.$route.params.forum),
+                    threads:[],
+                    crumbs:[]
+                },
                 canCreate: false,
                 loaded: false,
                 loadTiming: 200
@@ -51,6 +55,7 @@
         },
         methods: {
             populate(to) {
+                this.forum.title = ForumService.getForumNameFromCache(this.$route.params.forum);
                 ForumService.getForum(to.params.forum).then(data => {
                     // sort the threads, in case server doesn't do it
                     data.threads.sort(function(a, b) {
@@ -145,6 +150,7 @@
         border: 10px solid grey;
         border-radius: 15px;
         margin: 20px;
+        overflow:hidden;
 
         .thread-box-header {
             color: white;

@@ -1,10 +1,15 @@
 <template>
-    <div>
+    <div class="app-page">
         <div class="floater-login">
             <Login></Login>
         </div>
         <Banner></Banner>
-        <router-view/>
+        <div class="route-zone">
+            <transition :name="transitionName">
+                <router-view class="router" />
+            </transition>
+        </div>
+        <div class="buffer-test"></div>
         <Footer/>
     </div>
 </template>
@@ -21,15 +26,41 @@
         components: {Banner, Footer, Login},
         data() {
             return {
+                transitionName: "fade"
             }
         },
         created() {
             UserService.doCheckLogin();
+        },
+        watch: {
+            '$route' (to, from) {
+                if (from.name == "home" || to.name == "thread")
+                    this.transitionName = "slide-right";
+                else //if (to.name == "home" || from.name == "thread")
+                    this.transitionName = "slide-left";
+            }
         }
     }
 </script>
 
 <style lang="scss" scoped>
+.app-page{
+    display: flex;
+    flex-direction: column;
+    flex:1;
+    position: relative;
+
+    .route-zone {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .buffer-test {
+        display: flex;
+        flex: 1;
+        //background-color: black;
+    }
+}
     .floater-login {
         position: absolute;
         top: 0;
@@ -42,8 +73,17 @@
 </style>
 
 <style lang="scss">
+.router {
+    overflow: hidden;
+}
+
 html {
-    min-width: 500px;
+    height: 100%;
+}
+
+body {
+    min-height: calc(100% - 16px);
+    display: flex;
 }
 
 @keyframes loadbar {
@@ -129,5 +169,26 @@ html {
 
 .group-list-enter {
     transform: translateY(-30px);
+}
+
+.slide-left-enter-active, .slide-left-leave-active, .slide-right-enter-active, .slide-right-leave-active {
+    transition: all 500ms;
+}
+
+.slide-left-leave-active, .slide-right-leave-active {
+    position: absolute;
+    top: 0;
+    width: calc(100%)
+}
+
+.slide-left-enter, .slide-right-enter, .slide-left-leave-to, .slide-right-leave-to {
+    opacity: 0;
+}
+
+.slide-left-enter, .slide-right-leave-active {
+    transform: translate(-100%, 0);
+}
+.slide-left-leave-active, .slide-right-enter {
+    transform: translate(100%, 0);
 }
 </style>

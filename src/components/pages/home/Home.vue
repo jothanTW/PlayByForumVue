@@ -37,7 +37,7 @@
                 let returnh = 0;
                 for (let i = 0; i < this.groups.length; i++) {
                     let h = this.$refs["group" + i][0].offsetHeight;
-                    returnh += h + 10;
+                    returnh += h + 20;
                 }
                 this.calculatedHeight = returnh + "px";
             }
@@ -80,14 +80,19 @@
 </script>
 
 <style lang="scss" scoped="true">
-.group-list, .group-container {
-    transition: max-height 500ms ease-out;
+.group-list{ 
+    min-height: 500px;
+    
+    .group-container {
+        transition: max-height 500ms ease-out;
+    }
 }
     .forum-group {
         margin: 20px;
         background-color: grey;
         border-radius: 15px;
         border: 10px solid grey;
+        overflow: hidden;
 
         .forum-group-header {
             color: white;

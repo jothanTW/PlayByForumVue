@@ -17,5 +17,6 @@
     .banner-text {
         font-size: 40px;
         font-family: "Comic Sans MS", cursive, sans-serif;
+        padding-bottom: 40px;
     }
 </style>
