@@ -7,6 +7,7 @@
             <div> >  New Thread</div>
         </div>
         <div class="new-forum-title"><input ref="titlein" type="text" placeholder="Thread Title"></div>
+        <input type="checkbox" v-model="isgame">Is this a Game Thread?
         <!--PostMaker></PostMaker-->
         <div class="new-thread-post"><textarea v-model="rawPreview" ref="postin"></textarea></div>
         <button @click="doMakeThread()">Create Thread</button>
@@ -29,8 +30,10 @@ export default {
             forum: {},
             errorText: "",
             rawPreview: "",
+            rawOOC: "",
             testpost: {},
-            username: ""
+            username: "",
+            isgame: false
         }
     },
     methods: {
@@ -43,7 +46,7 @@ export default {
             let thparent = this.$route.params.forum;
 
             let vm = this;
-            ForumService.postNewThread(thtitle, thparent, thpost).then(response => {
+            ForumService.postNewThread(thtitle, thparent, thpost, this.isgame).then(response => {
                 if (response.data.status) {
                     this.$router.push({ path: "/thread/" + response.data.threadid });
                 } else if (response.data.error) {
@@ -61,7 +64,8 @@ export default {
                     date: new Date().toISOString()
                 },
                 textBlock: {
-                    text: this.rawPreview
+                    text: this.rawPreview,
+                    ooc: this.rawOOC
                 }
             }
         }

@@ -10,11 +10,11 @@
         <transition-group tag="div" name="bar-list"  class="post-box">
             <div class="threadloader" v-if="!loaded" key="loadingbar"><div class="loading-bar-container"></div>Loading...</div>
             <Post v-for="(post, index) in thread.posts" :key="index" 
-                :post="post" :isGameThread="thread.isGame" :username="username"  
+                :post="post" :isGamePost="thread.isGame" :username="username"  
                 @quote="moveQuote(post)" @edit="sendEdit($event, index)"></Post>
         </transition-group>
         <div class="post-maker-container">
-            <PostMaker ref="postmaker" @refresh="populate(this.$route.to)"></PostMaker>
+            <PostMaker ref="postmaker" :isGameThread="thread.isGame" @refresh="populate($route)"></PostMaker>
         </div>
     </div>
 </template>
@@ -67,7 +67,7 @@
                 let postnum = (this.pagenum - 1) * 40 + num + 1;
                 ForumService.editPost(this.thread.id, postnum, event).then(response=> {
                     if (response.status) {
-                        this.$router.go();
+                        this.populate(this.$route);
                     } else if (response.error) {
                         console.log(response);
                     }
@@ -87,6 +87,8 @@
         },
         watch: {
             '$route' (to) {
+                // might be messing up somewhere?
+                //this.populate(to);
                 this.populate(to);
             }
         }

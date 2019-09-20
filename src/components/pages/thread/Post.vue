@@ -1,9 +1,9 @@
 <template>
     <div v-if="post" class="post">
         <div class="post-header">
-            <div class="poster-name">{{ post.header.name }}</div>
+            <div class="poster-name" :class="{ 'obscured': post.header.alias}">{{ post.header.name }}<span v-if="post.header.alias">posting as</span></div>
             <div class="poster-char-name" v-if="post.header.char">{{ post.header.char }}</div>
-            <div class="poster-icon" v-if="post.header.icon"><img :src="post.header.icon"></div>
+            <div class="poster-icon" v-if="post.header.icon"><img :src="imgHost + post.header.icon"></div>
             <div class="poster-title" v-if="post.header.title">{{ post.header.title }}</div>
             <div class="poster-date">{{ getFormattedDate(post.header.date) }}</div>
         </div>
@@ -14,10 +14,22 @@
                 </div>
                 <div class="post-area" :class="{'active': !isEditing}" v-html="getFormattedText(post.textBlock.text)"></div>
             </div>
-            <div class="post-ooc" v-if="isGamePost && post.textBlock.ooc">{{ post.textBlock.ooc }}</div>
+            <div class="post-ooc" v-if="isGamePost && post.textBlock.ooc" :class="{'hidden': oocHidden}">
+                <div class="edit-area" :class="{'active': isEditing}">
+                    <textarea ref="editoocarea"></textarea>
+                </div>
+                <div class="post-area" :class="{'active': !isEditing && !oocHidden}" v-html="getFormattedText(post.textBlock.ooc)"></div>
+                <button v-if="isGamePost && (isEditing || post.textBlock.ooc && post.textBlock.ooc.length > 0)" class="show-hide-ooc" @click="oocHidden = !oocHidden">{{ oocHidden ? 'Show' : 'Hide'}} OOC Content</button>
+            </div>
             <div class="post-edit" v-if="post.edit && post.edit.date">Edited at {{ getFormattedDate(post.edit.date) }}</div>
         </div>
         <div class="post-buttons">
+            <div class="change-character" v-if="isEditing && isGamePost && false">
+                Change Character?<select v-model="post.header.alias">
+                    <option value="">No Character</option>
+                    <option v-for="character in userCharacters" :key="character.id" value="character.id">{{ character.name }}</option>
+                </select>
+            </div>
             <div class="send-edit-button" v-if="username == post.header.name && isEditing">
                 <button @click="sendEdit()">Confirm Edit</button>
             </div>
@@ -32,15 +44,20 @@
 </template>
 
 <script>
-    import DateService from "@/services/date.service"
-    import PostService from "@/services/post.service"
+    import DateService from "@/services/date.service";
+    import PostService from "@/services/post.service";
+    import ImageHostService from "@/services/imagehost.service";
+    import UserService from "@/services/user.service";
 
     export default {
         name: "Post",
         props: ["post", "isGamePost", "username"],
         data() {
             return {
-                isEditing: false
+                isEditing: false,
+                imgHost: ImageHostService.host,
+                oocHidden: true,
+                userCharacters: []
             }
         },
         methods: {
@@ -59,13 +76,16 @@
                 // the post text area gets replaced with a text box
                 this.isEditing = !this.isEditing;
                 this.$refs.editarea.value = this.post.textBlock.text;
+                this.$refs.editoocarea.value = this.post.textBlock.ooc;
+                this.userCharacters = UserService.characterCache; // this is here in case of login
             },
             sendEdit() {
                 // build a new text body, alert the thread
                 let textBlock = {
-                    text: this.$refs.editarea.value
+                    text: this.$refs.editarea.value,
+                    ooc: this.$refs.editoocarea.value
                 }
-                this.$emit('edit', {textBlock: {text: this.$refs.editarea.value}});
+                this.$emit('edit', {textBlock: textBlock});
             }
         }
     }
@@ -91,6 +111,21 @@
 
             .poster-name {
                 font-weight: bold;
+
+                &.obscured {
+                    color: grey;
+
+                    >span {
+                        margin-left: 10px;
+                        font-weight: normal;
+                        font-style: italic;
+                    }
+                }
+            }
+
+            .poster-char-name {
+                font-weight: bold;
+                margin-top: 10px;
             }
 
             .poster-title {
@@ -114,7 +149,7 @@
             word-wrap: break-word;
             max-width: calc(100% - 240px);
 
-            .post-text {
+            .post-text, .post-ooc {
 
                 .edit-area, .post-area {
                     overflow: hidden;
@@ -132,6 +167,11 @@
                     width: 100%;
                     flex-grow: 1;
                 }
+            }
+
+            .post-ooc {
+                margin-top: 10px;
+                border-top: 3px dashed grey;
             }
         }
 

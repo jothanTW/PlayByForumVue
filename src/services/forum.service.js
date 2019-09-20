@@ -1,6 +1,6 @@
 import axios from 'axios';
+import DBService from "@/services/db.service";
 
-const DBURL = "http://" + location.host.split(":")[0] + ":3000";
 const GRPROUTE = "/groups/";
 const FRMROUTE = "/forum/";
 const THDROUTE = "/thread/";
@@ -12,19 +12,21 @@ class ForumService {
             thread: {}
         }
     }
-    doGet(url) {
-        return axios.get(url).then(response => {
-            if (response.status >= 300) {
-                throw "Could not connect to database; return code " + response.status;
-            }
-            if (response.data.error) {
-                throw "Error from database: " + response.data.error + ": " + response.data.reason;
-            }
-            return response.data;
+    doGet(route) {
+        return DBService.getDBInfo().then(info => {
+            return axios.get(info.host + route).then(response => {
+                if (response.status >= 300) {
+                    throw "Could not connect to database; return code " + response.status;
+                }
+                if (response.data.error) {
+                    throw "Error from database: " + response.data.error + ": " + response.data.reason;
+                }
+                return response.data;
+            });
         });
     }
     getGroups() {
-        return this.doGet(DBURL + GRPROUTE).then(data => {
+        return this.doGet(GRPROUTE).then(data => {
             // log all forums found to the cache
             for (let group of data) {
                 for (let forum of group.forums) {
@@ -51,7 +53,7 @@ class ForumService {
     getForum(forumid, pagenum) {
         let p = 1;
         if (pagenum) p = pagenum;
-        return this.doGet(DBURL + FRMROUTE + forumid + "/" + p).then(data => {
+        return this.doGet(FRMROUTE + forumid + "/" + p).then(data => {
             // log all forums and threads found to cache
             this.pageCaches.forum[data.id] = {
                 id: data.id,
@@ -94,7 +96,7 @@ class ForumService {
     getThread(threadid, pagenum) {
         let p = 1;
         if (pagenum) p = pagenum;
-        return this.doGet(DBURL + THDROUTE + threadid + "/" + p).then(data => {
+        return this.doGet(THDROUTE + threadid + "/" + p).then(data => {
             // log all crumbs to cache
             this.pageCaches.thread[data.id] = {
                 id: data.id,
@@ -113,46 +115,53 @@ class ForumService {
         });
     }
     postToThread(threadid, post) {
-        return axios({
-            method: "POST",
-            url: DBURL + THDROUTE + threadid,
-            data: post,
-            withCredentials: true
-        }).then(response => {
-            return response;
-        }).catch(error => {
-            console.log(error);
-            console.error("Error making post: " + error);
-        })
+        return DBService.getDBInfo().then(info => {
+            return axios({
+                method: "POST",
+                url: info.host + THDROUTE + threadid,
+                data: post,
+                withCredentials: true
+            }).then(response => {
+                return response;
+            }).catch(error => {
+                console.log(error);
+                console.error("Error making post: " + error);
+            });
+        });
     }
-    postNewThread(threadname, forumid, post) {
-        return axios({
-            method: "POST",
-            url: DBURL + FRMROUTE + forumid,
-            data: {
-                title: threadname,
-                text: post
-            },
-            withCredentials: true
-        }).then(response => {
-            return response;
-        }).catch(error => {
-            console.log(error);
-            console.error("Error making thread: " + error);
-        })
+    postNewThread(threadname, forumid, post, isgame) {
+        return DBService.getDBInfo().then(info => {
+            return axios({
+                method: "POST",
+                url: info.host + FRMROUTE + forumid,
+                data: {
+                    title: threadname,
+                    text: post,
+                    isGame: isgame
+                },
+                withCredentials: true
+            }).then(response => {
+                return response;
+            }).catch(error => {
+                console.log(error);
+                console.error("Error making thread: " + error);
+            });
+        });
     }
     editPost(forumid, postnum, postcontent) {
-        return axios({
-            method: "PUT",
-            url: DBURL + THDROUTE + forumid + "/" + postnum,
-            data: postcontent,
-            withCredentials: true
-        }).then(response => {
-            return response;
-        }).catch(error => {
-            console.log(error);
-            console.error("Error editing post: " + error);
-        })
+        return DBService.getDBInfo().then(info => {
+            return axios({
+                method: "PUT",
+                url: info.host + THDROUTE + forumid + "/" + postnum,
+                data: postcontent,
+                withCredentials: true
+            }).then(response => {
+                return response;
+            }).catch(error => {
+                console.log(error);
+                console.error("Error editing post: " + error);
+            });
+        });
     }
     getForumNameFromCache(id) {
         if (this.pageCaches.forum[id]) 

@@ -4,6 +4,8 @@ import Home from '@/components/pages/home/Home'
 import Forum from '@/components/pages/forum/Forum'
 import Thread from '@/components/pages/thread/Thread'
 import CreateThread from '@/components/pages/CreateThread'
+import UserProfile from "@/components/pages/user/UserProfile"
+import CharacterSheet from "@/components/pages/user/CharacterSheet"
 
 Vue.use(Router)
 
@@ -28,6 +30,16 @@ export default new Router({
       path: '/thread/:thread/:page?',
       name: 'thread',
       component: Thread
+    },
+    {
+      path: '/user',
+      name: "user",
+      component: UserProfile
+    },
+    {
+      path: '/user/:userid/character/:characterid',
+      name: "character",
+      component: CharacterSheet
     }
   ]
 })

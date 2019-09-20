@@ -1,6 +1,7 @@
 <template>
     <div :style="styleObject" ref="group-container" class="group-container">
         <transition-group name="group-list" tag="div" ref="groups" class="group-list">
+            <div class="grouploader" v-if="groups.length == 0" key="loadbar"><div class="loading-bar-container"></div>Loading...</div>
             <div class="forum-group" v-for="(group, index) in groups" :key="index" :ref="'group' + index">
                 <div class="forum-group-header">
                     <div class="forum-group-title">{{ group.title }}</div>
@@ -39,13 +40,15 @@
                     let h = this.$refs["group" + i][0].offsetHeight;
                     returnh += h + 20;
                 }
-                this.calculatedHeight = returnh + "px";
+                this.calculatedHeight = returnh;
             }
         },
         computed: {
             styleObject : function() {
+                let minmaxheight = 200;
+                if (this.calculatedHeight > minmaxheight) minmaxheight = this.calculatedHeight;
                 return {
-                    'max-height': this.calculatedHeight
+                    'max-height': minmaxheight + "px"
                 }
             }
         },
@@ -85,6 +88,15 @@
     
     .group-container {
         transition: max-height 500ms ease-out;
+    }
+
+    .grouploader {
+        display: flex;
+        justify-content: center;
+        font-size: 18px;
+        .loading-bar-container {
+            min-height: 18px;
+        }
     }
 }
     .forum-group {

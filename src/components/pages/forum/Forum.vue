@@ -74,6 +74,7 @@
                         window.setTimeout(() => { this.forum.threads.push(thread)}, t)
                         t += i;
                     }
+                    this.setupPermissions();
                 });
             },
             setupPermissions() {

@@ -155,12 +155,12 @@ body {
 }
 
 .group-list-enter-active {
-    transition: all 1s;
+    transition: all 500ms;
 } 
 .group-list-leave-active {
     position: absolute;
 
-    transition: all 1s;
+    //transition: all 1s;
 }
 
 .group-list-enter, .bar-list-leave-to {
