@@ -85,6 +85,8 @@ export default {
                 }
                 if (response.data.status) {
                     // post complete, go to the last page
+                    // TODO: detect if this page num is the last page
+                    
                     // in case the routing messes up, clear the post box
                     this.$refs["post-area"].value = "";
                     this.rawPreview = "";

@@ -14,7 +14,7 @@
                 @quote="moveQuote(post)" @edit="sendEdit($event, index)"></Post>
         </transition-group>
         <div class="post-maker-container">
-            <PostMaker ref="postmaker" :isGameThread="thread.isGame" @refresh="populate($route)"></PostMaker>
+            <PostMaker ref="postmaker" :isGameThread="thread.isGame" @refresh="partialPopulate()"></PostMaker>
         </div>
     </div>
 </template>
@@ -57,6 +57,40 @@
                     this.loaded = true;
                 });
             },
+            partialPopulate() {
+                ForumService.getThread(this.$route.params.thread, this.$route.params.page).then(data => {
+                    let newposts = data.posts;
+                    // compare each post
+                    // if the names match, call it the same post
+                    // if they don't, hard reload the page
+                    //      could just put the new data in wholesale
+                    //
+                    // update the headers and textblocks
+                    // if data.posts has more, add them one at a time
+                    //
+                    // only thread data that could need to be updated is the post number
+                    this.thread.postNum = data.postNum;
+
+                    let t = 0;
+                    let i = this.postInterval;
+
+                    for (let i = 0; i < data.posts.length; i++) {
+                        if (i < this.thread.posts.length) {
+                            if (newposts[i].header.name == this.thread.posts[i].header.name) {
+                                Object.assign(this.thread.posts[i], newposts[i]);
+                            } else {
+                                this.populate(this.$route);
+                                return;
+                            }
+                        } else {
+                            window.setTimeout(() => {
+                                this.thread.posts.push(newposts[i]);
+                            }, t);
+                            t += i;
+                        }
+                    }
+                });
+            },
             moveQuote(post) {
                 this.$refs.postmaker.addQuote(post);
             },
@@ -89,7 +123,7 @@
             '$route' (to) {
                 // might be messing up somewhere?
                 //this.populate(to);
-                this.populate(to);
+                this.partialPopulate();
             }
         }
     }

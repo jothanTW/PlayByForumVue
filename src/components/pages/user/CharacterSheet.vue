@@ -1,55 +1,60 @@
 <template>
 <div>
     <div class="crumbs">
-        <router-link to="/">Home</router-link>&lt; Character Sheet
+        <router-link to="/">Home</router-link>&lt;<router-link :to="'/user/' + username">{{ username }}</router-link>&lt; {{ character.name }}'s Character Sheet
     </div>
-    <button class="character-edit-button" v-if="thisuser == username && !editmode" @click="editmode = true">Edit Character</button>
-    <button class="submit-edit-button" v-if="thisuser == username && editmode" @click="submitEdits()">Submit Edits</button>
-    <div class="char-sheet-page">
-        <div class="char-sheet-style-box">
-            <div v-if="character.name">
-                <div class="character-name">{{character.name}}</div>
-                <div class="character-icon" v-if="character.icon"><img class="char-large-icon" :src="imhost + character.icon"><img class="char-small-icon" :src="imhost + character.icon"></div>
-                <div class="character-title"><div v-if="editmode"><input type="text" v-model="character.title" placeholder="Character Title Text"></div><div v-else>{{ character.title }}</div></div>
-                <div class="character-stat-block">
-                    <!-- Character stats are ordered by rows of columns of stat name/value/flag objects-->
-                    <div v-for="(row, ridx) in character.statBlock.rows" :key="'row' + ridx" class="block-row">
-                        <button v-if="editmode" @click="character.statBlock.rows.splice(ridx, 1)" class="row-remove" :disabled="row.columns.length > 0" :title="getDeleteTitleText(row)">X</button>
-                        <div class="block-row-title">
-                            <input v-if="editmode" type="text" placeholder="Row Title" v-model="row.title">
-                            <div v-else>{{ row.title }}</div>
-                            <div class="column-buttons">
-                                <button class="add-column-button" @click="row.columns.push({ title: '', stats: []})" v-if="editmode">Add Stat Column</button>
-                                <button class="add-column-button" @click="row.columns.push({ title: '', stats: [], text: ''})" v-if="editmode">Add Text Column</button>
-                            </div>
-                        </div>
-                        <div v-for="(column, cidx) in row.columns" :key="'row' + ridx + 'column' + cidx" class="block-column">
-                            <div class="block-column-title">
-                                <input v-if="editmode" type="text" placeholder="Column Title" v-model="column.title">
-                                <div v-else>{{ column.title }}</div>
-                                <button v-if="editmode" @click="row.columns.splice(cidx, 1)" class="column-remove" :disabled="column.text && column.text.length > 0 || column.stats.length > 0" :title="getDeleteTitleText(column)">X</button>
-                            </div>
-                            <div class="column-stat-list" v-if="column.text === undefined">
-                                <div v-for="(stat, sidx) in column.stats" :key="'row' + ridx + 'column' + cidx + 'stat' + sidx" class="block-stat">
-                                    <div v-if="editmode">
-                                        <button @click="column.stats.splice(sidx, 1)" class="stat-remove" :disabled="stat.name.length > 0 || stat.value.length > 0" :title="getDeleteTitleText(stat)">X</button>
-                                        <input type="text" placeholder="Stat Name" v-model="stat.name">:<input type="text" placeholder="Stat Value" v-model="stat.value">
-                                    </div>
-                                    <div v-else>
-                                        <div class="stat-name">{{ stat.name }}</div>:<div class="stat-value">{{ stat.value }}</div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <button class="add-stat-button" @click="column.stats.push({ name: '', value: ''})" v-if="editmode">Add Stat</button>
+    <div v-if="loadfail" class="load-fail">
+        The character could not be found.
+    </div>
+    <div v-else>
+        <button class="character-edit-button" v-if="thisuser == username && !editmode" @click="editmode = true">Edit Character</button>
+        <button class="submit-edit-button" v-if="thisuser == username && editmode" @click="submitEdits()">Submit Edits</button>
+        <div class="char-sheet-page">
+            <div class="char-sheet-style-box">
+                <div v-if="character.name">
+                    <div class="character-name">{{character.name}}</div>
+                    <div class="character-icon" v-if="character.icon"><img class="char-large-icon" :src="imhost + character.icon"><img class="char-small-icon" :src="imhost + character.icon"></div>
+                    <div class="character-title"><div v-if="editmode"><input type="text" v-model="character.title" placeholder="Character Title Text"></div><div v-else>{{ character.title }}</div></div>
+                    <div class="character-stat-block">
+                        <!-- Character stats are ordered by rows of columns of stat name/value/flag objects-->
+                        <div v-for="(row, ridx) in character.statBlock.rows" :key="'row' + ridx" class="block-row">
+                            <button v-if="editmode" @click="character.statBlock.rows.splice(ridx, 1)" class="row-remove" :disabled="row.columns.length > 0" :title="getDeleteTitleText(row)">X</button>
+                            <div class="block-row-title">
+                                <input v-if="editmode" type="text" placeholder="Row Title" v-model="row.title">
+                                <div v-else>{{ row.title }}</div>
+                                <div class="column-buttons">
+                                    <button class="add-column-button" @click="row.columns.push({ title: '', stats: []})" v-if="editmode">Add Stat Column</button>
+                                    <button class="add-column-button" @click="row.columns.push({ title: '', stats: [], text: ''})" v-if="editmode">Add Text Column</button>
                                 </div>
                             </div>
-                            <div class="column-text-block" v-else> 
-                                <textarea v-if="editmode" v-model="column.text" @keyup="textareaup"></textarea>
-                                <div v-else v-html="getFormattedText(column.text)"></div>
+                            <div v-for="(column, cidx) in row.columns" :key="'row' + ridx + 'column' + cidx" class="block-column">
+                                <div class="block-column-title">
+                                    <input v-if="editmode" type="text" placeholder="Column Title" v-model="column.title">
+                                    <div v-else>{{ column.title }}</div>
+                                    <button v-if="editmode" @click="row.columns.splice(cidx, 1)" class="column-remove" :disabled="column.text && column.text.length > 0 || column.stats.length > 0" :title="getDeleteTitleText(column)">X</button>
+                                </div>
+                                <div class="column-stat-list" v-if="column.text === undefined">
+                                    <div v-for="(stat, sidx) in column.stats" :key="'row' + ridx + 'column' + cidx + 'stat' + sidx" class="block-stat">
+                                        <div v-if="editmode">
+                                            <button @click="column.stats.splice(sidx, 1)" class="stat-remove" :disabled="stat.name.length > 0 || stat.value.length > 0" :title="getDeleteTitleText(stat)">X</button>
+                                            <input type="text" placeholder="Stat Name" v-model="stat.name">:<input type="text" placeholder="Stat Value" v-model="stat.value">
+                                        </div>
+                                        <div v-else>
+                                            <div class="stat-name">{{ stat.name }}</div>:<div class="stat-value">{{ stat.value }}</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <button class="add-stat-button" @click="column.stats.push({ name: '', value: ''})" v-if="editmode">Add Stat</button>
+                                    </div>
+                                </div>
+                                <div class="column-text-block" v-else> 
+                                    <textarea v-if="editmode" v-model="column.text" @keyup="textareaup"></textarea>
+                                    <div v-else v-html="getFormattedText(column.text)"></div>
+                                </div>
                             </div>
                         </div>
+                        <button class="add-row-button" @click="character.statBlock.rows.push({ title: '', columns: []})" v-if="editmode">Add Stat Row</button>
                     </div>
-                    <button class="add-row-button" @click="character.statBlock.rows.push({ title: '', columns: []})" v-if="editmode">Add Stat Row</button>
                 </div>
             </div>
         </div>
@@ -68,6 +73,7 @@ export default {
         return {
             character: {},
             loaded: false,
+            loadfail: false,
             error: "",
             editmode: false,
             imhost: "",
@@ -90,6 +96,7 @@ export default {
                 if (response.data.error) {
                     console.log(response.data.error);
                     this.error = response.data.error;
+                    this.loadfail = true;
                 } else {
                     this.character = response.data.character;
                     this.loaded = true;
@@ -172,12 +179,25 @@ export default {
 
     a {
         margin-right: 10px;
+        margin-left: 10px;
     }
+}
+
+.load-fail {
+    margin: 20px;
+    border: 15px solid red;
+    border-radius: 10px;
+    padding: 20px;
+    font-size: 24px;
+    display: inline-block;
 }
 
 .char-sheet-page {
      background-color: grey;
      padding: 20px;
+     box-shadow: 3px 3px 3px grey;
+     margin: 5px;
+
     .char-sheet-style-box {
         border-radius: 20px;
         background-color: white;
@@ -193,17 +213,22 @@ export default {
 
     .character-icon {
         display: flex;
+        .char-large-icon {
+            box-shadow: 2px 2px 2px grey;
+        }
         .char-small-icon {
             width: 50px;
             border: 5px solid #880000;
             border-radius: 50%;
             margin-top: 0;
             margin-bottom: auto;
+            margin-left: 10px;
             display: block;
         }
     }
 
     .character-title {
+        margin-top: 10px;
         font-style: italic;
     }
 
@@ -237,8 +262,9 @@ export default {
 
             .block-column {
                 min-width: 200px;
-                border: 5px solid grey;
-                border-radius: 5px;
+                //border: 5px solid grey;
+                border-radius: 10px;
+                box-shadow: 2px 2px 2px grey;
                 margin: 10px;
                 padding: 10px;
                 position: relative;

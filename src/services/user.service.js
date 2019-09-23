@@ -57,7 +57,7 @@ class UserService {
                     },
                 withCredentials: true
             }).then(response => {
-                if (response.status) {
+                if (response.data.status) {
                     this.username = username;
                     this.usericon = response.data.user.icon;
                 }
@@ -141,7 +141,7 @@ class UserService {
     }
     getAllCharacters(username) {
         if (!username)
-            return Promise.resolve({error: "No user defined"});
+            return Promise.resolve({data: {error: "No user defined"}});
         return DBService.getDBInfo().then(info => {
             return axios({
                 method: "GET",
@@ -185,6 +185,39 @@ class UserService {
                 return response;
             }).catch(error => {
                 console.error("Error editing character: " + error);
+            });
+        });
+    }
+    editUserTitle(titletext) {
+        let udata = {title: titletext};
+        return DBService.getDBInfo().then(info => {
+            return axios({
+                method: "PUT",
+                url: info.host + CHKROUTE + this.username,
+                data: udata,
+                withCredentials: true
+            }).then(response => {
+                
+                //console.log(response);
+                return response;
+            }).catch(error => {
+                console.error("Error editing user: " + error);
+            });
+        });
+    }
+    getProfile(username) {
+        return DBService.getDBInfo().then(info => {
+            return axios({
+                method: "GET",
+                url: info.host + CHKROUTE + username,
+                withCredentials: true
+            }).then(response => {
+                if (username == this.username) {
+                    this.characterCache = response.data.data.characters;
+                }
+                return response;
+            }).catch(error => {
+                console.error("Error getting user: " + error);
             });
         });
     }

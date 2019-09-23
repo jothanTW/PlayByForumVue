@@ -61,7 +61,8 @@ export default {
             this.testpost = {
                 header: {
                     name: this.username,
-                    date: new Date().toISOString()
+                    date: new Date().toISOString(),
+                    icon: UserService.usericon
                 },
                 textBlock: {
                     text: this.rawPreview,

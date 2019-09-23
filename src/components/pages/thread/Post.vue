@@ -1,8 +1,8 @@
 <template>
     <div v-if="post" class="post">
         <div class="post-header">
-            <div class="poster-name" :class="{ 'obscured': post.header.alias}">{{ post.header.name }}<span v-if="post.header.alias">posting as</span></div>
-            <div class="poster-char-name" v-if="post.header.char">{{ post.header.char }}</div>
+            <div class="poster-name" :class="{ 'obscured': post.header.alias}"><router-link :to="'/user/' + post.header.name">{{ post.header.name }}</router-link><span v-if="post.header.alias">posting as</span></div>
+            <div class="poster-char-name" v-if="post.header.char"><router-link :to="'/user/' + post.header.name + '/character/' + post.header.alias">{{ post.header.char }}</router-link></div>
             <div class="poster-icon" v-if="post.header.icon"><img :src="imgHost + post.header.icon"></div>
             <div class="poster-title" v-if="post.header.title">{{ post.header.title }}</div>
             <div class="poster-date">{{ getFormattedDate(post.header.date) }}</div>
@@ -19,12 +19,12 @@
                     <textarea ref="editoocarea"></textarea>
                 </div>
                 <div class="post-area" :class="{'active': !isEditing && !oocHidden}" v-html="getFormattedText(post.textBlock.ooc)"></div>
-                <button v-if="isGamePost && (isEditing || post.textBlock.ooc && post.textBlock.ooc.length > 0)" class="show-hide-ooc" @click="oocHidden = !oocHidden">{{ oocHidden ? 'Show' : 'Hide'}} OOC Content</button>
+                <button v-if="isGamePost && (isEditing || (post.textBlock.ooc && post.textBlock.ooc.length > 0))" class="show-hide-ooc" @click="oocHidden = !oocHidden">{{ oocHidden ? 'Show' : 'Hide'}} OOC Content</button>
             </div>
             <div class="post-edit" v-if="post.edit && post.edit.date">Edited at {{ getFormattedDate(post.edit.date) }}</div>
         </div>
         <div class="post-buttons">
-            <div class="change-character" v-if="isEditing && isGamePost && false">
+            <div class="change-character" v-if="isEditing && isGamePost && post && false">
                 Change Character?<select v-model="post.header.alias">
                     <option value="">No Character</option>
                     <option v-for="character in userCharacters" :key="character.id" value="character.id">{{ character.name }}</option>
@@ -76,7 +76,8 @@
                 // the post text area gets replaced with a text box
                 this.isEditing = !this.isEditing;
                 this.$refs.editarea.value = this.post.textBlock.text;
-                this.$refs.editoocarea.value = this.post.textBlock.ooc;
+                if (this.$refs.editoocarea)
+                    this.$refs.editoocarea.value = this.post.textBlock.ooc;
                 this.userCharacters = UserService.characterCache; // this is here in case of login
             },
             sendEdit() {
@@ -87,6 +88,10 @@
                 }
                 this.$emit('edit', {textBlock: textBlock});
             }
+        },
+        mounted() {
+            // make sure each post has an empty alias if it doesn't have one
+            console.log("Alias:" + post.header.alias);
         }
     }
 </script>
@@ -112,8 +117,16 @@
             .poster-name {
                 font-weight: bold;
 
+                a {
+                    text-decoration: none;
+                    color: black;
+                }
+
                 &.obscured {
-                    color: grey;
+
+                    a {
+                        color: grey;
+                    }
 
                     >span {
                         margin-left: 10px;
@@ -126,6 +139,10 @@
             .poster-char-name {
                 font-weight: bold;
                 margin-top: 10px;
+                a {
+                    text-decoration: none;
+                    color: black;
+                }
             }
 
             .poster-title {
@@ -159,6 +176,10 @@
 
                     &.active {
                         max-height: initial;
+
+                        textarea{
+                            min-height: 100px;
+                        }
                     }
                 }
                 
@@ -191,8 +212,9 @@
             padding-bottom: 10px;
         }
         border: 3px solid grey;
-        box-shadow: 2px 2px 2px black;
+        box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.5);
         padding: 10px;
+        margin: 5px;
     }
 
     .spoiler-text {

@@ -32,7 +32,7 @@ export default new Router({
       component: Thread
     },
     {
-      path: '/user',
+      path: '/user/:user?',
       name: "user",
       component: UserProfile
     },
