@@ -187,7 +187,7 @@ export default {
         createNewCharacter() {
             // build the character, and if the image exists, build that too
             let newChar = {
-                characterName: this.ncharname,
+                name: this.ncharname,
                 title: "",
                 statBlock: { rows: [] }
             }

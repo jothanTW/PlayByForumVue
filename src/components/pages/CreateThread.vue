@@ -6,10 +6,9 @@
             <div>> <router-link class="crumb-home" :to="'/forum/' + forum.id">{{ forum.title }}</router-link></div>
             <div> >  New Thread</div>
         </div>
-        <div class="new-forum-title"><input ref="titlein" type="text" placeholder="Thread Title"></div>
+        <div class="new-forum-title"><input v-model="threadtitle" type="text" placeholder="Thread Title"></div>
         <input type="checkbox" v-model="isgame">Is this a Game Thread?
-        <!--PostMaker></PostMaker-->
-        <div class="new-thread-post"><textarea v-model="rawPreview" ref="postin"></textarea></div>
+        <TextEditor @edit="textEdit"></TextEditor>
         <button @click="doMakeThread()">Create Thread</button>
         <div v-if="errorText.length">{{ errorText }}</div>
         <Post class="test-post" v-if="rawPreview.length" :post="testpost" :username="username"></Post>
@@ -21,10 +20,11 @@ import ForumService from "@/services/forum.service"
 import UserService from "@/services/user.service"
 
 import Post from "@/components/pages/thread/Post"
+import TextEditor from "@/components/TextEditor"
 
 export default {
     name: "CreateThread",
-    components: {Post},
+    components: {Post, TextEditor},
     data() {
         return {
             forum: {},
@@ -33,6 +33,7 @@ export default {
             rawOOC: "",
             testpost: {},
             username: "",
+            threadtitle: "",
             isgame: false
         }
     },
@@ -41,8 +42,8 @@ export default {
             this.errorText = text;
         },
         doMakeThread() {
-            let thtitle = this.$refs.titlein.value;
-            let thpost = this.$refs.postin.value;
+            let thtitle = this.threadtitle;
+            let thpost = this.rawPreview;
             let thparent = this.$route.params.forum;
 
             let vm = this;
@@ -53,6 +54,9 @@ export default {
                     vm.errorText = response.data.error;
                 }
             })
+        },
+        textEdit(event) {
+            this.rawPreview = event;
         }
     },
     watch: {

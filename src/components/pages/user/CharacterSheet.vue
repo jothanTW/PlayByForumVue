@@ -13,8 +13,12 @@
             <div class="char-sheet-style-box">
                 <div v-if="character.name">
                     <div class="character-name">{{character.name}}</div>
-                    <div class="character-icon" v-if="character.icon"><img class="char-large-icon" :src="imhost + character.icon"><img class="char-small-icon" :src="imhost + character.icon"></div>
+                    <div class="character-icon" v-if="character.icon || imgdata"><img class="char-large-icon" :src="imgdata ? imgdata : imhost + character.icon"><img class="char-small-icon" :src="imgdata ? imgdata : imhost + character.icon"></div>
                     <div class="character-title"><div v-if="editmode"><input type="text" v-model="character.title" placeholder="Character Title Text"></div><div v-else>{{ character.title }}</div></div>
+                    <div v-if="thisuser == username && editmode" style="display: flex; flex-direction: column; font-style: italic">
+                        Change this character's icon?
+                        <input type="file" id="charImageUpload" @change="updateCharacterImage" accept="image/*">
+                    </div>
                     <div class="character-stat-block">
                         <!-- Character stats are ordered by rows of columns of stat name/value/flag objects-->
                         <div v-for="(row, ridx) in character.statBlock.rows" :key="'row' + ridx" class="block-row">
@@ -78,6 +82,7 @@ export default {
             editmode: false,
             imhost: "",
             username: "",
+            imgdata: "",
             thisuser: ""
         }
     },
@@ -121,13 +126,49 @@ export default {
                     this.error = response.data.error;
                     console.log(response.data.error);
                 } else if (response.data.status) {
+                    if (this.imgdata.length) {
+                        // send the new image
+                        let base64str = this.imgdata.substring(this.imgdata.indexOf("base64") + 7);
+                        //console.log(base64str);
+                        UserService.sendImage(base64str, this.character);
+                    }
                     // reload page
                     this.populate(this.$route);
                     this.editmode = false;
                 }
             });
         },
-        
+
+        updateCharacterImage(e) {
+            let icon = e.target.files[0];
+            this.userimgmod = true;
+            if (!icon) {
+                this.userimage = ImageHostService.host + UserService.usericon;
+                this.userimgmod = false;
+                return;
+            }
+            if (icon.size > 1.2 * 1024 * 1024) {
+                errorText = "Image is too big! should be under 1.2MB"
+                icon.value = null;
+                return;
+            }
+            let reader = new FileReader();
+            reader.readAsDataURL(icon);
+            reader.onload = this.applyCharacterImage
+            reader.onerror = function (error) {
+                console.log('Error: ', error);
+            };
+        },
+        applyCharacterImage(evt) {
+            this.imgdata = evt.target.result;
+            if (this.imgdata.length) {
+                //this.$nextTick(() => {
+                //    if (this.$refs.userImgPre.width > this.maxIconSize || this.$refs.userImgPre.height > this.maxIconSize)
+                //        this.errorText = "Icon is too big! should be " + this.maxIconSize + " by " + this.maxIconSize + " px";
+                //        this.userimgmod = false;
+                //})
+            }
+        },
         getDeleteTitleText(obj) {
             if (obj.text) {
                 if (obj.text.length > 0)

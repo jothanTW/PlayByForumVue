@@ -10,24 +10,24 @@
         <div class="post-content">
             <div class="post-text">
                 <div class="edit-area" :class="{'active': isEditing}">
-                    <textarea ref="editarea"></textarea>
+                    <textarea ref="editarea" v-model="postBackup.textBlock.text"></textarea>
                 </div>
                 <div class="post-area" :class="{'active': !isEditing}" v-html="getFormattedText(post.textBlock.text)"></div>
             </div>
-            <div class="post-ooc" v-if="isGamePost && post.textBlock.ooc" :class="{'hidden': oocHidden}">
+            <div class="post-ooc" v-if="isGamePost" :class="{'hidden': oocHidden, 'bordered': post.textBlock.ooc && post.textBlock.ooc.length}">
                 <div class="edit-area" :class="{'active': isEditing}">
-                    <textarea ref="editoocarea"></textarea>
+                    <textarea ref="editoocarea" v-model="postBackup.textBlock.ooc"></textarea>
                 </div>
-                <div class="post-area" :class="{'active': !isEditing && !oocHidden}" v-html="getFormattedText(post.textBlock.ooc)"></div>
+                <div class="post-area" :class="{'active': !isEditing && !oocHidden}" v-if="post.textBlock.ooc" v-html="getFormattedText(post.textBlock.ooc)"></div>
                 <button v-if="isGamePost && (isEditing || (post.textBlock.ooc && post.textBlock.ooc.length > 0))" class="show-hide-ooc" @click="oocHidden = !oocHidden">{{ oocHidden ? 'Show' : 'Hide'}} OOC Content</button>
             </div>
             <div class="post-edit" v-if="post.edit && post.edit.date">Edited at {{ getFormattedDate(post.edit.date) }}</div>
         </div>
         <div class="post-buttons">
-            <div class="change-character" v-if="isEditing && isGamePost && post && false">
-                Change Character?<select v-model="post.header.alias">
+            <div class="change-character" v-if="isEditing && isGamePost">
+                Change Character?<select v-model="postBackup.header.alias">
                     <option value="">No Character</option>
-                    <option v-for="character in userCharacters" :key="character.id" value="character.id">{{ character.name }}</option>
+                    <option v-for="character in userCharacters" :key="character.id" :value="character.id">{{ character.name }}</option>
                 </select>
             </div>
             <div class="send-edit-button" v-if="username == post.header.name && isEditing">
@@ -57,7 +57,8 @@
                 isEditing: false,
                 imgHost: ImageHostService.host,
                 oocHidden: true,
-                userCharacters: []
+                userCharacters: [],
+                postBackup: {}
             }
         },
         methods: {
@@ -72,26 +73,50 @@
             sendQuoteEvent() {
                 this.$emit('quote');
             },
+            resetData() {
+                this.isEditing = false;
+                // make sure each post has an empty alias if it doesn't have one
+                if (!this.post.header.alias) {
+                    this.post.header.alias = "";
+                }
+                this.postBackup = JSON.parse(JSON.stringify(this.post));
+            },
             doEdit() {
                 // the post text area gets replaced with a text box
                 this.isEditing = !this.isEditing;
-                this.$refs.editarea.value = this.post.textBlock.text;
-                if (this.$refs.editoocarea)
-                    this.$refs.editoocarea.value = this.post.textBlock.ooc;
+                //this.$refs.editarea.value = this.post.textBlock.text;
+                if (this.isGamePost && !this.post.textBlock.ooc) {
+                    this.post.textBlock.ooc = "";
+                }
+                //if (this.$refs.editoocarea)
+                //    this.$refs.editoocarea.value = this.post.textBlock.ooc;
                 this.userCharacters = UserService.characterCache; // this is here in case of login
+
+                if (this.isEditing == true) {
+                    // something's messing up with the object assignments
+                    //  where editing one edits the other
+                    //  so MAKE SURE no object references are the same
+                    this.postBackup = JSON.parse(JSON.stringify(this.post));
+                }
+                else
+                {
+                    
+                    //Object.assign(this.post,this.postBackup);
+                }
             },
             sendEdit() {
                 // build a new text body, alert the thread
-                let textBlock = {
-                    text: this.$refs.editarea.value,
-                    ooc: this.$refs.editoocarea.value
-                }
-                this.$emit('edit', {textBlock: textBlock});
+                let textBlock = this.postBackup.textBlock;
+                if (this.postBackup.header.alias != undefined)
+                    this.$emit('edit', {textBlock: textBlock, alias: this.postBackup.header.alias});
+                else 
+                    this.$emit('edit', {textBlock: textBlock});
+                
+                this.isEditing = false;
             }
         },
-        mounted() {
-            // make sure each post has an empty alias if it doesn't have one
-            console.log("Alias:" + post.header.alias);
+        created() {
+            this.resetData();
         }
     }
 </script>
@@ -167,6 +192,7 @@
             max-width: calc(100% - 240px);
 
             .post-text, .post-ooc {
+                padding: 10px;
 
                 .edit-area, .post-area {
                     overflow: hidden;
@@ -176,6 +202,7 @@
 
                     &.active {
                         max-height: initial;
+                    padding: 10px;
 
                         textarea{
                             min-height: 100px;
@@ -191,8 +218,11 @@
             }
 
             .post-ooc {
-                margin-top: 10px;
-                border-top: 3px dashed grey;
+
+                &.bordered{
+                    margin-top: 10px;
+                    border-top: 3px dashed grey;
+                }
             }
         }
 

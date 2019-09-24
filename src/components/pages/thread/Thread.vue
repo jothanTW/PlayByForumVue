@@ -9,7 +9,7 @@
         </div>
         <transition-group tag="div" name="bar-list"  class="post-box">
             <div class="threadloader" v-if="!loaded" key="loadingbar"><div class="loading-bar-container"></div>Loading...</div>
-            <Post v-for="(post, index) in thread.posts" :key="index" 
+            <Post v-for="(post, index) in thread.posts" :key="index" :ref="'postnum' + index"
                 :post="post" :isGamePost="thread.isGame" :username="username"  
                 @quote="moveQuote(post)" @edit="sendEdit($event, index)"></Post>
         </transition-group>
@@ -78,6 +78,7 @@
                         if (i < this.thread.posts.length) {
                             if (newposts[i].header.name == this.thread.posts[i].header.name) {
                                 Object.assign(this.thread.posts[i], newposts[i]);
+                                //this.$refs['postnum' + i].resetData();
                             } else {
                                 this.populate(this.$route);
                                 return;
@@ -101,7 +102,7 @@
                 let postnum = (this.pagenum - 1) * 40 + num + 1;
                 ForumService.editPost(this.thread.id, postnum, event).then(response=> {
                     if (response.status) {
-                        this.populate(this.$route);
+                        this.partialPopulate();
                     } else if (response.error) {
                         console.log(response);
                     }

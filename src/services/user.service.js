@@ -106,7 +106,7 @@ class UserService {
     sendImage(image, character) {
         let cid = "";
         if (character) 
-            cid = this.getKebabCase(character.characterName);
+            cid = this.getKebabCase(character.name);
         return DBService.getDBInfo().then(info => {
             return axios({
                 method: "PUT",

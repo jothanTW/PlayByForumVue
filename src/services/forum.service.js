@@ -149,6 +149,7 @@ class ForumService {
         });
     }
     editPost(forumid, postnum, postcontent) {
+        console.log(postcontent);
         return DBService.getDBInfo().then(info => {
             return axios({
                 method: "PUT",

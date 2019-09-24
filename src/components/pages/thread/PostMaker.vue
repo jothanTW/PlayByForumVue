@@ -2,9 +2,11 @@
     <div class="post-maker-body" :class='{ "active" : showBox }'>
         <div class="post-maker-input">
             PUT YOUR POSTS RIGHT HERE BABY
-            <textarea ref="post-area" v-model="rawPreview" class="post-maker-text-area"></textarea>
-            <button v-if="isGameThread" @click="showOOC = !showOOC; if (!showOOC) rawOOC = ''">{{ showOOC ? "Remove" : "Include"}} OOC text?</button>
-            <textarea v-if="isGameThread && showOOC" v-model="rawOOC" class="post-maker-ooc-area"></textarea>
+            <TextEditor ref="texteditor" class="text-editor-component" @edit="textEditorControl"></TextEditor>
+            <button v-if="isGameThread" @click="showOOC = !showOOC; setPostPreview()">
+                {{ showOOC ? "Remove" : "Include"}} OOC text?
+            </button>
+            <TextEditor ref="ooceditor" class="text-editor-component" :class="{'hidden': !showOOC}" @edit="oocEditorControl"></TextEditor>
             <div v-if="isGameThread" class="alias-selector">
                 Choose a character to post as?
                 <select v-model="characterAlias">
@@ -12,11 +14,11 @@
                     <option v-for="character in usercharacters" :key="character.id" :value="character.id">{{character.name}}</option>
                 </select>
             </div>
-            <button @click="sendPost()" :disabled="disableSubmit">Submit Post</button>
+            
         </div>
         <div class='error-text' v-if="errorText.length">{{ errorText }}</div>
-        <!--div class="post-preview" v-html="postPreview"></div-->
         <Post class="test-post" v-if="rawPreview.length" :post="testpost" :username="username" :isGamePost="isGameThread"></Post>
+            <button @click="sendPost()" :disabled="disableSubmit">Submit Post</button>
     </div>
 </template>
 
@@ -26,17 +28,17 @@ import ForumService from "@/services/forum.service";
 import PostService from "@/services/post.service";
 
 import Post from "@/components/pages/thread/Post";
+import TextEditor from "@/components/TextEditor";
 
 export default {
     name: "PostMaker",
-    components: { Post },
+    components: { Post, TextEditor },
     props: [ "isGameThread" ],
     data() {
         return {
             showBox: false,
             errorText: "",
             disableSubmit: false,
-            postPreview: "",
             rawPreview: "",
             rawOOC: "",
             username: "",
@@ -59,18 +61,19 @@ export default {
             })
         },
         addQuote(post) {
-            let quotestr = "[quote=\"" + post.header.name + "\"]\n" + post.textBlock.text + "\n[/quote]";
-            let newstr = this.rawPreview + quotestr;
+            this.$refs.texteditor.addQuote(post);
+            //let quotestr = "[quote=\"" + post.header.name + "\"]\n" + post.textBlock.text + "\n[/quote]";
+            //let newstr = this.rawPreview + quotestr;
 
-            this.$refs["post-area"].value = newstr;
-            this.rawPreview = newstr;
+            //this.$refs["post-area"].value = newstr;
+            //this.rawPreview = newstr;
 
             this.setPostPreview();
         },
         sendPost() {
             this.disableSubmit = true;
             let postbody = {
-                text: this.$refs["post-area"].value,
+                text: this.rawPreview,
                 ooc: this.rawOOC
             }
             if (this.characterAlias.length > 0) {
@@ -88,8 +91,8 @@ export default {
                     // TODO: detect if this page num is the last page
                     
                     // in case the routing messes up, clear the post box
-                    this.$refs["post-area"].value = "";
-                    this.rawPreview = "";
+                    this.$refs.texteditor.clearText();
+                    //this.rawPreview = "";
                     if (this.$route.params.page == 'last') {
                         // trigger a route refresh
                         this.$emit('refresh');
@@ -113,6 +116,9 @@ export default {
                     }
                 }
                 
+                if (!this.showOOC) {
+                    this.testpost.textBlock.ooc = "";
+                }
             
                 if (this.characterAlias.length > 0) {
                     for (let c of this.usercharacters) {
@@ -133,6 +139,12 @@ export default {
             } else {
                 this.testpost = null;
             }
+        },
+        textEditorControl(event) {
+            this.rawPreview = event;
+        },
+        oocEditorControl(event) {
+            this.rawOOC = event;
         }
     },
     computed: {
@@ -163,7 +175,12 @@ export default {
     flex-direction: column;
     max-height: 0;
     transition: all 500ms;
-        overflow: hidden;
+    overflow: hidden;
+    margin: 20px;
+    border: 10px solid grey;
+    padding: 10px;
+    flex-shrink: 1;
+    width: auto;
 
     &.active {
         max-height: initial;
@@ -173,9 +190,17 @@ export default {
         max-width: 800px;
         display: flex;
         flex-direction: column;
+        margin: auto;
+        flex-grow: 1;
+        width: 100%;
 
-        textarea {
-            min-height: 300px;
+        .text-editor-component {
+            width: 100%;
+            overflow: hidden;
+
+            &.hidden {
+                height: 0;
+            }
         }
     }
 
