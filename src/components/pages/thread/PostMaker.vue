@@ -177,13 +177,13 @@ export default {
     transition: all 500ms;
     overflow: hidden;
     margin: 20px;
-    border: 10px solid grey;
-    padding: 10px;
     flex-shrink: 1;
     width: auto;
 
     &.active {
         max-height: initial;
+    padding: 10px;
+    border: 10px solid grey;
     }
 
     .post-maker-input {

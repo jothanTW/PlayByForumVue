@@ -93,6 +93,9 @@ export default {
             // optional: fetch character preload
             if (to.params.characterPreLoad) {
                 this.character = to.params.characterPreLoad;
+                if (this.character.icon) {
+                    this.character.icon = this.character.icon.substr(this.character.icon.lastIndexOf("/") + 1);
+                }
             }
 
             this.username = to.params.userid;
