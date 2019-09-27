@@ -16,6 +16,7 @@
         <div class="post-maker-container">
             <PostMaker ref="postmaker" :isGameThread="thread.isGame" @refresh="partialPopulate()"></PostMaker>
         </div>
+        <MapBlock/>
     </div>
 </template>
 
@@ -25,10 +26,11 @@
 
     import Post from "@/components/pages/thread/Post"
     import PostMaker from "@/components/pages/thread/PostMaker"
+    import MapBlock from "@/components/pages/thread/MapBlock"
 
     export default {
         name: "Thread",
-        components: { Post, PostMaker },
+        components: { Post, PostMaker, MapBlock },
         data() {
             return {
                 thread: {

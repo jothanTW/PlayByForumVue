@@ -11,13 +11,13 @@ class DBService {
             return Promise.resolve({ host: this.host });
         
         // test the connection
-        return axios.head(this.httpc).then(response =>{
-            this.host = this.httpc;
+        return axios.head(this.httpsc).then(response =>{
+            this.host = this.httpsc;
             console.log("Using secure connection to backend");
             return {host: this.host};
         }).catch(e => {
             this.host = this.httpc;
-            console.warn("Secure connection to backend unavailable! Using unsecure connection");
+            console.warn("Secure connection to backend unavailable! Responded with error " + e + ". Using unsecure connection");
             return {host: this.host};
         })
     }
