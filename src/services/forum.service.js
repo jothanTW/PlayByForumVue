@@ -148,13 +148,34 @@ class ForumService {
             });
         });
     }
-    editPost(forumid, postnum, postcontent) {
-        console.log(postcontent);
+    editPost(threadid, postnum, postcontent) {
         return DBService.getDBInfo().then(info => {
             return axios({
                 method: "PUT",
-                url: info.host + THDROUTE + forumid + "/" + postnum,
+                url: info.host + THDROUTE + threadid + "/" + postnum,
                 data: postcontent,
+                withCredentials: true
+            }).then(response => {
+                return response;
+            }).catch(error => {
+                console.log(error);
+                console.error("Error editing post: " + error);
+            });
+        });
+    }
+    sendMap(threadid, mapname, mapsource, gridsize, gridx, gridy) {
+        let mapObj = {
+            mapname: mapname,
+            mapsource: mapsource,
+            gridsize: gridsize,
+            gridoffx: gridx,
+            gridoffy: gridy
+        }
+        return DBService.getDBInfo().then(info => {
+            return axios({
+                method: "POST",
+                url: info.host + THDROUTE + threadid + "/" + "map",
+                data: mapObj,
                 withCredentials: true
             }).then(response => {
                 return response;
